@@ -1,0 +1,66 @@
+import java_cup.runtime.*;
+//import ast.ASTNode;
+scan with {: return getScanner().next_token(); :};
+
+terminal    SELECT, FROM, WHERE;
+terminal    INSERT, UPDATE, DELETE;
+terminal    CREATE,ALTER, DROP;
+terminal    COMMA, SEMI, EQUAL, BIGGER, SMALLER, AND, OR, DOT;
+terminal    String   STRING;
+terminal    ALL;/*  symbol "*" */
+terminal    LPAREN, RPAREN;
+terminal    QUOTATION;
+
+non terminal    SENTENCE;
+non terminal    WHATPAR, FROMPAR, WHEREPAR;
+non terminal    CONTDITION;
+non terminal    ROWLIST, TABLELIST, CONTDITIONLIST;
+non terminal    OBJECT;
+non terminal    SUBSEELECT;
+
+
+
+//non terminal
+
+
+
+SENTENCE ::= WHATPAR:whatpar FROMPAR:frompar WHEREPAR SEMI {:RESULT = BinExpr.createAdd(whatpar,frompa); :}
+           | WHATPAR FROMPAR SEMI;
+
+OBJECT ::= STRING:s {: System.out.println("\t" + s);:}
+         | STRING:s1 {: System.out.println("\t" + s1); :}
+           DOT {: System.out.println("\t\t" +"DOT"); :}
+           STRING:s2 {: System.out.println("\t" + s2); :}
+         | QUOTATION {: System.out.print("\t" + "\""); :}
+           STRING:s {: System.out.print(s); :}
+           QUOTATION{: System.out.println( "\""); :}
+         ;
+WHATPAR ::= SELECT {: System.out.println("Select"); :} ROWLIST;
+
+FROMPAR ::= FROM {: System.out.println("From"); :} TABLELIST
+          | FROM {: System.out.println("From"); :} SUBSEELECT {: System.out.println("\t"); :};
+
+SUBSEELECT ::= LPAREN WHATPAR FROMPAR WHEREPAR RPAREN
+           |LPAREN WHATPAR FROMPAR RPAREN;
+
+
+WHEREPAR ::= WHERE
+            {: System.out.println("Where"); :}
+             CONTDITIONLIST;
+TABLELIST ::= OBJECT COMMA  TABLELIST
+          | OBJECT
+          ;
+ROWLIST ::= ALL {: System.out.println("\t" + "*"); :}
+          | OBJECT COMMA  ROWLIST
+          | OBJECT
+          ;
+
+CONTDITION ::= OBJECT EQUAL{: System.out.println("\t\t"  + " = " ); :} OBJECT
+          | OBJECT BIGGER{: System.out.println("\t\t" +" > "); :} OBJECT
+          | OBJECT SMALLER {: System.out.println("\t\t"  + " < "); :}OBJECT
+          ;
+
+CONTDITIONLIST ::= CONTDITION AND {: System.out.println("\tAnd"); :} CONTDITIONLIST
+                 | CONTDITION OR {: System.out.println("\tOr"); :} CONTDITIONLIST
+                 | CONTDITION
+                 ;
